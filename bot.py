@@ -1,10 +1,12 @@
 # bot.py
 import os
+from os import path
 
 import discord
 from discord.utils import get
 from dotenv import load_dotenv
 
+import json
 import re
 import asyncio
 
@@ -21,7 +23,21 @@ version = "1.1"
 prefix = "!transient"
 shortprefix = "!tr"
 
-channeltimes = {}
+channelfile = "channeltimes.json"
+
+def refresh_channeltimes():
+	if path.isfile(channelfile):
+		with open(channelfile) as json_file:
+			c = json.load(json_file)
+		return c
+	else:
+		return {}
+
+channeltimes = refresh_channeltimes()
+
+def write_times():
+	with open(channelfile, 'w', encoding='utf-8') as f:
+		json.dump(channeltimes, f, ensure_ascii=False, indent=4)
 
 #####discord actions
 
@@ -75,9 +91,11 @@ def invinput():
 
 def markchannel(channel, time):
 	channeltimes[channel] = time
+	write_times()
 
 def unmarkchannel(channel):
 	del(channeltimes[channel])
+	write_times()
 
 async def markfordelete(message, time):
 	print(str(message.id) + " marked for deletion in " + str(time) + " seconds")
