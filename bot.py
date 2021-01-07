@@ -19,7 +19,7 @@ discordclient = client
 
 #####config
 
-version = "1.1"
+version = "1.2"
 prefix = "!transient"
 shortprefix = "!tr"
 
@@ -90,11 +90,11 @@ def invinput():
 #####core functionality
 
 def markchannel(channel, time):
-	channeltimes[channel] = time
+	channeltimes[str(channel)] = time
 	write_times()
 
 def unmarkchannel(channel):
-	del(channeltimes[channel])
+	del(channeltimes[str(channel)])
 	write_times()
 
 async def markfordelete(message, time):
@@ -141,11 +141,11 @@ async def on_ready():
 	for guild in client.guilds:
 		if guild.name == GUILD:
 			break
-
 	print(
         f'{client.user} is connected to the following guild:\n'
     	f'{guild.name}(id: {guild.id})'
     )
+	print(str(len(channeltimes)) + " channel(s) loaded from file.")
 
 async def add_reaction_array(message, arr):
 	for emoji in arr:
@@ -202,9 +202,9 @@ async def on_message(message):
 		else:
 			time = 300
 		await markfordelete(message, time)
-	elif message.channel.id in channeltimes:
+	elif str(message.channel.id) in channeltimes:
 		print("Message sent in marked channel")
-		await add_reaction_array(message, emojiarrayninja())
-		await markfordelete(message, channeltimes[message.channel.id])
+		# await add_reaction_array(message, emojiarrayninja())
+		await markfordelete(message, channeltimes[str(message.channel.id)])
 
 client.run(TOKEN)
