@@ -17,9 +17,11 @@ discordclient = client
 
 #####config
 
-version = "1.0"
+version = "1.1"
 prefix = "!transient"
 shortprefix = "!tr"
+
+channeltimes = {}
 
 #####discord actions
 
@@ -34,7 +36,10 @@ def helpmsg():
 	output += "\n"
 	output += "Please note that editing a message will not retroactively apply the deletion tag."
 	output += "\n\n"
-	output += "MISC COMMANDS:\n\n"
+	output += "MISC COMMANDS (prefix !transient or !tr):\n\n"
+	output += "!transient markchannel [n] - marks channel for auto-delete with optional time interval in seconds\n"
+	output += "!transient unmarkchannel - unmarks channel for auto-delete\n"
+	output += "\n"
 	output += "!transient about - displays general info about this bot\n"
 	output += "!transient changelog - displays changes from last version\n"
 	output += "!transient help - displays this message\n"
@@ -58,7 +63,7 @@ def changelog():
 	output += "v"
 	output += version
 	output += ":\n"
-	output += "\t - initial commit, testing\n"
+	output += "\t - added channel-wide monitoring\n"
 	output += "```"
 	return output
 
@@ -67,6 +72,12 @@ def invinput():
 	return output
 
 #####core functionality
+
+def markchannel(channel, time):
+	channeltimes[channel] = time
+
+def unmarkchannel(channel):
+	del(channeltimes[channel])
 
 async def markfordelete(message, time):
 	print(str(message.id) + " marked for deletion in " + str(time) + " seconds")
@@ -141,6 +152,20 @@ async def on_message(message):
 					await message.channel.send(aboutmsg())
 				elif command == "changelog":
 					await message.channel.send(changelog())
+				elif command == "markchannel":
+					time = 300
+					try:
+						if args[0].isnumeric():
+							time = int(args[0])
+					except ValueError:
+						time = 300
+					except IndexError:
+						time = 300
+					markchannel(message.channel.id, time)
+					await message.channel.send("This channel has been marked for message auto-delete with time interval set to " + str(time) + " seconds.")
+				elif command == "unmarkchannel":
+					unmarkchannel(message.channel.id)
+					await message.channel.send("This channel has been unmarked for message auto-delete.")
 				else:
 					await message.channel.send(invinput())
 			except ValueError:
@@ -159,5 +184,9 @@ async def on_message(message):
 		else:
 			time = 300
 		await markfordelete(message, time)
+	elif message.channel.id in channeltimes:
+		print("Message sent in marked channel")
+		await add_reaction_array(message, emojiarrayninja())
+		await markfordelete(message, channeltimes[message.channel.id])
 
 client.run(TOKEN)
