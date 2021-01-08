@@ -24,6 +24,7 @@ prefix = "!transient"
 shortprefix = "!tr"
 
 channelfile = "channeltimes.json"
+defaultchanneltime = 1800
 
 def refresh_channeltimes():
 	if path.isfile(channelfile):
@@ -171,14 +172,14 @@ async def on_message(message):
 				elif command == "changelog":
 					await message.channel.send(changelog())
 				elif command == "markchannel":
-					time = 300
+					time = defaultchanneltime
 					try:
 						if args[0].isnumeric():
 							time = int(args[0])
 					except ValueError:
-						time = 300
+						time = defaultchanneltime
 					except IndexError:
-						time = 300
+						time = defaultchanneltime
 					markchannel(message.channel.id, time)
 					await message.channel.send("This channel has been marked for message auto-delete with time interval set to " + str(time) + " seconds.")
 				elif command == "unmarkchannel":
